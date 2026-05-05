@@ -40,13 +40,13 @@ Description: This is my working fork of the CS487-PA4 starter repository under m
 
 ### Evidence 1.2: App Service Overview
 
-![App Service Overview](docs/1.2.png)
+![App Service Overview](docs/1.3.png)
 
 Description: The Web App pa4-27100164 is deployed in resource group rg-sp26-27100164 in the UK West region. It is running on Node 22 LTS and is accessible at https://pa4-27100164.azurewebsites.net.
 
 ### Evidence 1.3: Deployment Center / GitHub Actions
 
-![Deployment Center](docs/1.3.png)
+![Deployment Center](docs/1.2.png)
 
 Description: The Web App is connected to my GitHub fork via the Azure Deployment Center. Any push to the main branch automatically triggers a GitHub Actions workflow that deploys the latest code to the App Service.
 
@@ -54,7 +54,7 @@ Description: The Web App is connected to my GitHub fork via the Azure Deployment
 
 ![Live Web UI](docs/1.4.png)
 
-Description: The TaskFlow dashboard is loading successfully over HTTPS from the App Service. The Submit Order form and Status panel are both visible confirming the frontend is being served correctly.
+Description: The TaskFlow dashboard is loading successfully over HTTPS from the App Service. The Submit Order form is visible confirming the frontend is being served correctly.
 
 ---
 
@@ -69,12 +69,14 @@ Description: The container registry pa427100164 is provisioned in resource group
 ### Evidence 2.2: Docker Builds
 
 ![Docker Builds](docs/2.2.png)
+![Docker Builds](docs/2.2b.png)
 
 Description: All three images were built locally using docker build with the linux/amd64 platform flag. validate-api was built from the validate-api folder, report-job from report-job, and func-app from function-app.
 
 ### Evidence 2.3: ACR Repositories
 
-![ACR Repositories](docs/2.3.png)
+![ACR Repositories](docs/2.4.png)
+![ACR Repositories](docs/2.5.png)
 
 Description: All three images were successfully pushed to the registry. validate-api:v1, report-job:v1, and func-app:v1 are all visible in the ACR repository list.
 
@@ -90,7 +92,7 @@ Description: The orchestrator calls validate_activity first which makes a POST r
 
 ### Evidence 3.2: Local Function Handler Listing
 
-![Function Handlers](docs/3.2.png)
+![Function Handlers](docs/3.1.png)
 
 Description: Running func start locally shows all four Durable Function handlers were discovered by the runtime: http_starter, my_orchestrator, validate_activity, and report_activity.
 
@@ -106,13 +108,13 @@ Description: The Function App pa4-27100164-fn is configured to pull the func-app
 
 ### Evidence 4.2: Orchestration Smoke Test
 
-![Smoke Test](docs/4.2.png)
+![Smoke Test](docs/4.3.png)
 
 Description: The curl command successfully triggered the orchestrator and returned an instance id along with a statusQueryGetUri proving the Function App is running and accepting requests.
 
 ### Evidence 4.3: Expected Failed Status Before Downstream Wiring
 
-![Expected Failure](docs/4.3.png)
+![Expected Failure](docs/4.4.png)
 
 Description: The status query shows runtimeStatus as Failed because VALIDATE_URL was not yet configured at this stage. This is expected and confirms the orchestrator ran and reached the validate_activity step before failing.
 
@@ -128,6 +130,7 @@ Description: The AKS cluster pa4-27100164 is running in resource group rg-sp26-2
 
 ### Evidence 5.2: Kubernetes Nodes and Pods
 
+![Nodes and Pods](docs/5.1.png)
 ![Nodes and Pods](docs/5.2.png)
 
 Description: kubectl get nodes shows one node in Ready state and kubectl get pods shows the validate-deployment pod is running successfully.
@@ -193,6 +196,7 @@ Description: The user assigned managed identity mi-pa4-27100164 is attached to t
 ### Evidence 6.6: Report App Settings
 
 ![Report Settings](docs/6.6.png)
+![Report Settings](docs/6.6b.png)
 
 Description: REPORT_IMAGE points to the report-job image in ACR. ACR_SERVER, ACR_USERNAME, and ACR_PASSWORD are used to pull the image. STORAGE_ACCOUNT_URL tells the report job where to write the PDF. SUBSCRIPTION_ID and REPORT_RG tell the SDK where to create the ACI. Passwords are masked.
 
@@ -202,25 +206,35 @@ Description: REPORT_IMAGE points to the report-job image in ACR. ACR_SERVER, ACR
 
 ### Evidence 7.1: Web App Wiring
 
-![Web App Wiring](docs/7.1.png)
+![Web App Wiring](docs/1.5.png)
 
 Description: FUNCTION_START_URL is set to the http_starter endpoint of the Function App with the function key. FUNCTION_STATUS_URL is set to the Durable Task webhook endpoint used by the frontend to poll orchestration status.
 
 ### Evidence 7.2: Happy Path UI
 
+![Happy Path](docs/7.1.png)
 ![Happy Path](docs/7.2.png)
+![Happy Path](docs/7.3.png)
+![Happy Path](docs/7.4.png)
 
 Description: A valid order was submitted with SKU ABC and qty 2. The status panel first showed Running with a live instance ID then updated to Completed with the report URL proving the full pipeline executed successfully.
 
 ### Evidence 7.3: Backend Participation
 
-![Backend Participation](docs/7.3.png)
+![Backend Participation](docs/7.5.png)
+![Backend Participation](docs/7.6.png)
+![Backend Participation](docs/7.7.png)
+![Backend Participation](docs/7.7b.png)
+![Backend Participation](docs/7.8.png)
 
 Description: The Function App log stream shows http_starter, my_orchestrator, validate_activity, and report_activity all executing in sequence for the same order. The AKS validator received the request and the PDF appeared in blob storage matching the submitted order ID.
 
 ### Evidence 7.4: Reject Path UI
 
-![Reject Path](docs/7.4.png)
+![Reject Path](docs/7.9.png)
+![Reject Path](docs/7.10.png)
+![Reject Path](docs/7.11.png)
+![Reject Path](docs/7.11b.png)
 
 Description: An order was submitted with qty 999 which exceeds the validator limit of 100. The orchestrator received the rejected response from the AKS validator and returned status rejected without creating any ACI, confirmed by the empty az container list output.
 

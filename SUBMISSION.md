@@ -15,11 +15,11 @@ Copy this file to <code style="color:#111827;background:#ddd6fe;padding:2px 4px;
 
 | Field | Value |
 |---|---|
-| Name | TODO |
-| Roll Number | TODO |
-| GitHub Repository URL | TODO |
-| Resource Group | `rg-sp26-TODO` |
-| Assigned Region | TODO: `uaenorth` or `ukwest` |
+| Name | Mohammad Mohib Haider |
+| Roll Number | 27100164 |
+| GitHub Repository URL | https://github.com/mohibhaider1/CS487-PA4 |
+| Resource Group | `rg-sp26-27100164` |
+| Assigned Region | `ukwest` |
 
 ## Evidence Rules
 
@@ -34,9 +34,9 @@ Copy this file to <code style="color:#111827;background:#ddd6fe;padding:2px 4px;
 
 ### Evidence 1.1: Forked Repository
 
-TODO: Embed screenshot of your forked GitHub repository.
+![Forked Repository](docs/1.1.png)
 
-Description: TODO: Explain that this is your working fork and that it contains the PA4 starter structure.
+Description: This is my working fork of the CS487-PA4 starter repository under my GitHub account. It contains the full PA4 project structure including webapp, function-app, validate-api, and report-job folders.
 
 ### Evidence 1.2: App Service Overview
 

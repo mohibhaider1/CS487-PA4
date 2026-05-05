@@ -124,7 +124,7 @@ Description: The status query shows runtimeStatus as Failed because VALIDATE_URL
 
 ### Evidence 5.1: AKS Cluster
 
-![AKS Cluster](docs/5.1.png)
+![AKS Cluster](docs/5.1a.png)
 
 Description: The AKS cluster pa4-27100164 is running in resource group rg-sp26-27100164 in UK West with 1 node of size Standard_B2s.
 
@@ -156,6 +156,7 @@ Description: The VALIDATE_URL application setting on the Function App is set to 
 ### Evidence 5.6: AKS Idle Behavior
 
 ![AKS Idle](docs/5.6.png)
+![AKS Idle](docs/5.6b.png)
 
 Description: Unlike ACI, the AKS node continues running even when there are no incoming orders. The node stays in Ready state and the pod stays Running at all times because AKS is designed for long-lived services not short-lived jobs.
 
@@ -167,7 +168,7 @@ Description: Unlike ACI, the AKS node continues running even when there are no i
 
 ![Blob Container](docs/6.1.png)
 
-Description: The reports blob container was created in the storage account pa427100164 where the report job writes its generated PDFs.
+Description: The reports blob container was created in the storage account pa427100164 (and before that, rgsp2627100164bf2d), where the report job writes its generated PDFs. Note: two storage accounts exist in the resource group, rgsp2627100164bf2d was auto-created by Azure when the Function App was first provisioned, and pa427100164 was manually created later to follow the assignment naming convention. Both are kept to avoid breaking existing references. All report PDFs are written to pa427100164/reports.
 
 ### Evidence 6.2: Manual ACI Run
 
@@ -206,7 +207,7 @@ Description: REPORT_IMAGE points to the report-job image in ACR. ACR_SERVER, ACR
 
 ### Evidence 7.1: Web App Wiring
 
-![Web App Wiring](docs/1.5.png)
+![Web App Wiring](docs/7.1a.png)
 
 Description: FUNCTION_START_URL is set to the http_starter endpoint of the Function App with the function key. FUNCTION_STATUS_URL is set to the Durable Task webhook endpoint used by the frontend to poll orchestration status.
 
@@ -227,7 +228,7 @@ Description: A valid order was submitted with SKU ABC and qty 2. The status pane
 ![Backend Participation](docs/7.7b.png)
 ![Backend Participation](docs/7.8.png)
 
-Description: The Function App log stream shows http_starter, my_orchestrator, validate_activity, and report_activity all executing in sequence for the same order. The AKS validator received the request and the PDF appeared in blob storage matching the submitted order ID.
+Description: The Function App log stream shows http_starter, my_orchestrator, validate_activity, and report_activity all executing in sequence for the same order. The AKS validator received the request and the PDF appeared in blob storage matching the submitted order ID. The Portal monitoring tab was not available so the log stream from az webapp log tail was used to observe the orchestration completing.
 
 ### Evidence 7.4: Reject Path UI
 
@@ -236,7 +237,7 @@ Description: The Function App log stream shows http_starter, my_orchestrator, va
 ![Reject Path](docs/7.11.png)
 ![Reject Path](docs/7.11b.png)
 
-Description: An order was submitted with qty 999 which exceeds the validator limit of 100. The orchestrator received the rejected response from the AKS validator and returned status rejected without creating any ACI, confirmed by the empty az container list output.
+Description: An order was submitted with qty 999 which exceeds the validator limit of 100. The AKS validator returned valid: false which caused the orchestrator to short-circuit and return status: rejected without calling report_activity. No ACI was created for this order as confirmed by the empty az container list output. The Portal monitoring tab was not available so the log stream from az webapp log tail was used to observe the orchestration completing. The actual status: rejected output is redacted by Azure in the logs but the empty ACI list and the UI rejection message together prove the orchestrator took the correct reject path.
 
 ---
 
@@ -250,24 +251,38 @@ Description: TODO: Confirm that it shows GitHub, App Service, Durable Function, 
 
 ### Question 8.2: Service Selection
 
-TODO: In 3-4 sentences each, explain why TaskFlow uses App Service, Durable Functions, AKS, and ACI for their specific roles.
+App Service is used for the web frontend because it supports long-running Node.js processes with built-in CI/CD from GitHub, making deployment automatic on every push. It handles persistent HTTP connections well which is what a user-facing dashboard needs, and the B1 plan is cost effective for a low-traffic frontend.
+
+Durable Functions is used for the orchestration layer because it coordinates multi-step async workflows and checkpoints state between steps. If the report step fails midway the runtime replays the orchestrator without re-running validation. This is important here because the report job can take up to a minute and a plain HTTP function would time out waiting for it.
+
+AKS is used for the validator because it is a long-lived HTTP service that needs to be always available to handle incoming validation requests. AKS keeps the pod running continuously with a stable external IP via a LoadBalancer service, giving full control over the container lifecycle and networking independently of the rest of the pipeline.
+
+ACI is used for the report job because it is a short-lived one-shot task that starts, generates a PDF, writes it to blob storage, and exits. ACI only bills while the container is alive so there is no idle cost between orders. Swapping AKS and ACI would not work because AKS is for persistent services and ACI has no stable endpoint to serve HTTP traffic continuously.
 
 ### Question 8.3: ACI vs AKS
 
-TODO: Compare idle behavior, cost behavior, and operational model for AKS and ACI using your screenshots.
+When the AKS cluster is idle for 10 minutes the node keeps running and billing continues as shown in Evidence 5.6 where the metrics show the node stays active with no incoming traffic. The pod stays in Running state waiting for the next request as seen in Evidence 5.2. There is no scale-to-zero with a standard AKS setup so idle time still costs money.
+
+For ACI in this pipeline idle does not really apply. The orchestrator creates a new ACI per order and the container is deleted by report_activity as soon as it finishes as shown in Evidence 7.3 where az container list returns empty after the job completes. There is no persistent ACI sitting around between orders so there is no idle cost at all.
+
+If a user spammed the Submit button 1000 times in a minute, ACI would be the most expensive because the Function App would try to create 1000 separate container instances each billed individually. AKS on the other hand would handle all 1000 validation requests on the same running node with no extra cost per request as the validator pod in Evidence 5.2 handles all traffic regardless of volume.
 
 ### Question 8.4: Durable Functions vs Plain HTTP
 
-TODO: Explain at least two problems that Durable Functions solves for this sequential workflow.
+If the same flow was implemented as two plain HTTP functions calling each other, the first function would need to wait for the report job to finish which can take up to a minute. This would likely hit the default HTTP timeout limit and the request would fail even if the work was still running in the background.
+
+There is also no state persistence with plain HTTP functions. If the second function fails halfway through creating the ACI, there is no way to retry just that step. The whole flow would need to restart from the beginning including re-running the validation call. Durable Functions checkpoints state after each activity so a retry picks up exactly where it left off.
 
 ### Question 8.5: Cost Review
 
-TODO: Embed Cost Management screenshot scoped to your resource group.
+![Cost Review](docs/8.5.png)
 
-Description: TODO: Identify the most expensive resource and explain why.
+Description: The cost analysis for rg-sp26-27100164 shows $2.98 actual spend in May 2026 with a forecast of $19.24 for the full month. Microsoft Defender is the highest cost at $1.85, followed by Azure App Service at $0.79 and Container Registry at $0.30. The AKS cluster is the main compute cost driver as the Standard_B2s node runs continuously even when idle. Container Instances cost less than $0.01 which proves the per-run ACI model is extremely cost efficient compared to the always-on AKS node.
 
 ### Question 8.6: Challenges Faced
 
-TODO: Describe at least two real issues you hit and how you debugged them.
+The biggest issue was getting the Function App storage authentication to work. The subscription's security policy blocks shared key access by default so the standard AzureWebJobsStorage connection string did not work. The fix was to use the managed identity approach with three separate settings: AzureWebJobsStorage__accountName, AzureWebJobsStorage__credential set to managedidentity, and AzureWebJobsStorage__clientId. This took significant debugging through the log stream to identify.
+
+A second issue was that two storage accounts ended up in the resource group. Azure auto-created rgsp2627100164bf2d when the Function App was first provisioned, while pa427100164 was manually created to follow the naming convention. Both had to be kept because deleting either would break existing references in the Function App settings. The STORAGE_ACCOUNT_URL setting was updated to point to pa427100164 so reports go to the correct account.
 
 ---

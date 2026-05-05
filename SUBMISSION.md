@@ -40,21 +40,21 @@ Description: This is my working fork of the CS487-PA4 starter repository under m
 
 ### Evidence 1.2: App Service Overview
 
-TODO: Embed screenshot of the Web App overview page showing `webapp-<rollnum>` and Running status.
+![App Service Overview](docs/1.2.png)
 
-Description: TODO: State the resource group, region, runtime, and public URL.
+Description: The Web App pa4-27100164 is deployed in resource group rg-sp26-27100164 in the UK West region. It is running on Node 22 LTS and is accessible at https://pa4-27100164.azurewebsites.net.
 
 ### Evidence 1.3: Deployment Center / GitHub Actions
 
-TODO: Embed screenshot of Deployment Center or the successful GitHub Actions deployment.
+![Deployment Center](docs/1.3.png)
 
-Description: TODO: Explain how the Web App is connected to your GitHub fork.
+Description: The Web App is connected to my GitHub fork via the Azure Deployment Center. Any push to the main branch automatically triggers a GitHub Actions workflow that deploys the latest code to the App Service.
 
 ### Evidence 1.4: Live Web UI
 
-TODO: Embed screenshot of the TaskFlow page loaded in a browser.
+![Live Web UI](docs/1.4.png)
 
-Description: TODO: Explain that the App Service is serving the frontend successfully.
+Description: The TaskFlow dashboard is loading successfully over HTTPS from the App Service. The Submit Order form and Status panel are both visible confirming the frontend is being served correctly.
 
 ---
 
@@ -62,21 +62,21 @@ Description: TODO: Explain that the App Service is serving the frontend successf
 
 ### Evidence 2.1: ACR Overview
 
-TODO: Embed screenshot of `crpa4<rollnum>` overview.
+![ACR Overview](docs/2.1.png)
 
-Description: TODO: Identify the registry SKU and resource group.
+Description: The container registry pa427100164 is provisioned in resource group rg-sp26-27100164 in UK West with the Basic SKU and admin user enabled.
 
 ### Evidence 2.2: Docker Builds
 
-TODO: Embed screenshot showing successful local builds for `validate-api`, `report-job`, and `func-app`.
+![Docker Builds](docs/2.2.png)
 
-Description: TODO: Explain which folder produced each image.
+Description: All three images were built locally using docker build with the linux/amd64 platform flag. validate-api was built from the validate-api folder, report-job from report-job, and func-app from function-app.
 
 ### Evidence 2.3: ACR Repositories
 
-TODO: Embed screenshot or CLI output showing all three repositories in ACR.
+![ACR Repositories](docs/2.3.png)
 
-Description: TODO: Confirm `validate-api:v1`, `report-job:v1`, and `func-app:v1` were pushed.
+Description: All three images were successfully pushed to the registry. validate-api:v1, report-job:v1, and func-app:v1 are all visible in the ACR repository list.
 
 ---
 
@@ -84,15 +84,15 @@ Description: TODO: Confirm `validate-api:v1`, `report-job:v1`, and `func-app:v1`
 
 ### Evidence 3.1: Completed Function Code
 
-TODO: Link to your completed file: `[function_app.py](function-app/function_app.py)`.
+[function_app.py](function-app/function_app.py)
 
-Description: TODO: Summarize how your orchestrator chains validation and report generation.
+Description: The orchestrator calls validate_activity first which makes a POST request to the AKS validator. If the order is valid it then calls report_activity which creates an ACI to generate the PDF report and returns the blob URL.
 
 ### Evidence 3.2: Local Function Handler Listing
 
-TODO: Embed screenshot of `func start` showing the HTTP starter, orchestrator, and activities.
+![Function Handlers](docs/3.2.png)
 
-Description: TODO: Explain that the Durable Functions runtime discovered your handlers.
+Description: Running func start locally shows all four Durable Function handlers were discovered by the runtime: http_starter, my_orchestrator, validate_activity, and report_activity.
 
 ---
 
@@ -100,21 +100,21 @@ Description: TODO: Explain that the Durable Functions runtime discovered your ha
 
 ### Evidence 4.1: Function App Container Configuration
 
-TODO: Embed screenshot showing the Function App uses your `func-app:v1` image from ACR.
+![Function App Container](docs/4.1.png)
 
-Description: TODO: State the Function App name and image URI.
+Description: The Function App pa4-27100164-fn is configured to pull the func-app:v1 image from pa427100164.azurecr.io in the Deployment Center.
 
 ### Evidence 4.2: Orchestration Smoke Test
 
-TODO: Embed screenshot of the `curl` output that starts an orchestration and returns status URLs.
+![Smoke Test](docs/4.2.png)
 
-Description: TODO: Explain what the returned `id` and `statusQueryGetUri` prove.
+Description: The curl command successfully triggered the orchestrator and returned an instance id along with a statusQueryGetUri proving the Function App is running and accepting requests.
 
 ### Evidence 4.3: Expected Failed Status Before Downstream Wiring
 
-TODO: Embed screenshot of the status query JSON showing the expected failure before `VALIDATE_URL` is configured.
+![Expected Failure](docs/4.3.png)
 
-Description: TODO: Explain why this failure is expected at this stage.
+Description: The status query shows runtimeStatus as Failed because VALIDATE_URL was not yet configured at this stage. This is expected and confirms the orchestrator ran and reached the validate_activity step before failing.
 
 ---
 
@@ -122,39 +122,39 @@ Description: TODO: Explain why this failure is expected at this stage.
 
 ### Evidence 5.1: AKS Cluster
 
-TODO: Embed screenshot of AKS overview showing `aks-<rollnum>` succeeded.
+![AKS Cluster](docs/5.1.png)
 
-Description: TODO: State node count, node size, region, and resource group.
+Description: The AKS cluster pa4-27100164 is running in resource group rg-sp26-27100164 in UK West with 1 node of size Standard_B2s.
 
 ### Evidence 5.2: Kubernetes Nodes and Pods
 
-TODO: Embed screenshot of `kubectl get nodes` and `kubectl get pods`.
+![Nodes and Pods](docs/5.2.png)
 
-Description: TODO: Explain that the validator pod is scheduled and running.
+Description: kubectl get nodes shows one node in Ready state and kubectl get pods shows the validate-deployment pod is running successfully.
 
 ### Evidence 5.3: Kubernetes Service
 
-TODO: Embed screenshot of `kubectl get service validate-service`.
+![Kubernetes Service](docs/5.3.png)
 
-Description: TODO: Identify the external IP and port exposed by the LoadBalancer.
+Description: The validate-service of type LoadBalancer has been assigned the external IP 51.141.114.228 on port 8080 which is used by the Function App to reach the validator.
 
 ### Evidence 5.4: Validator API Tests
 
-TODO: Embed screenshot of `curl /health`, a valid `curl /validate`, and an invalid `curl /validate`.
+![Validator Tests](docs/5.4.png)
 
-Description: TODO: Explain the accepted path and the `qty > 100` rejection rule.
+Description: The health endpoint returns ok. A valid order with qty 2 returns valid true and a bad order with qty 999 returns valid false with the reason quantity exceeds limit confirming the validator logic is working.
 
 ### Evidence 5.5: Function App `VALIDATE_URL`
 
-TODO: Embed screenshot showing the Function App application setting `VALIDATE_URL`.
+![VALIDATE_URL Setting](docs/5.5.png)
 
-Description: TODO: Explain how the Durable Function reaches the AKS validator.
+Description: The VALIDATE_URL application setting on the Function App is set to http://51.141.114.228:8080/validate which is the external IP of the AKS LoadBalancer service.
 
 ### Evidence 5.6: AKS Idle Behavior
 
-TODO: Embed AKS metrics screenshot and/or `kubectl` output after the service is idle.
+![AKS Idle](docs/5.6.png)
 
-Description: TODO: Explain that the AKS node remains running even when there are no orders.
+Description: Unlike ACI, the AKS node continues running even when there are no incoming orders. The node stays in Ready state and the pod stays Running at all times because AKS is designed for long-lived services not short-lived jobs.
 
 ---
 
@@ -162,39 +162,39 @@ Description: TODO: Explain that the AKS node remains running even when there are
 
 ### Evidence 6.1: Blob Container
 
-TODO: Embed screenshot of the `reports` blob container.
+![Blob Container](docs/6.1.png)
 
-Description: TODO: Explain where generated PDFs are stored.
+Description: The reports blob container was created in the storage account pa427100164 where the report job writes its generated PDFs.
 
 ### Evidence 6.2: Manual ACI Run
 
-TODO: Embed screenshot of `az container show` for `ci-report-test`.
+![ACI Run](docs/6.2.png)
 
-Description: TODO: State the final container state and why the job exits.
+Description: The manually created container instance ci-report-test reached the Succeeded state confirming the report-job image ran successfully and exited cleanly after completing its work.
 
 ### Evidence 6.3: ACI Logs
 
-TODO: Embed screenshot of `az container logs`.
+![ACI Logs](docs/6.3.png)
 
-Description: TODO: Explain what the report job printed after generating and uploading the PDF.
+Description: The container logs show the report job generating the PDF and uploading it to blob storage before exiting.
 
 ### Evidence 6.4: Generated PDF
 
-TODO: Embed screenshot showing `TEST-001.pdf` in Blob Storage or opened from Blob Storage.
+![Generated PDF](docs/6.4.png)
 
-Description: TODO: Explain how this proves the ACI wrote to storage.
+Description: TEST-001.pdf is listed in the reports blob container confirming the ACI successfully wrote its output to Azure Blob Storage.
 
 ### Evidence 6.5: Function App Managed Identity and IAM
 
-TODO: Embed screenshots of system-assigned identity enabled and Contributor role assignment on your resource group.
+![Managed Identity](docs/6.5.png)
 
-Description: TODO: Explain why the Function App needs this permission to create ACIs.
+Description: The user assigned managed identity mi-pa4-27100164 is attached to the Function App. This allows the report_activity to authenticate with Azure and create ACI instances on demand without storing any credentials in the code.
 
 ### Evidence 6.6: Report App Settings
 
-TODO: Embed screenshot of `REPORT_*`, `ACR_*`, `STORAGE_CONN`, and `SUBSCRIPTION_ID` settings.
+![Report Settings](docs/6.6.png)
 
-Description: TODO: Explain what each group of settings is used for. Mask secrets.
+Description: REPORT_IMAGE points to the report-job image in ACR. ACR_SERVER, ACR_USERNAME, and ACR_PASSWORD are used to pull the image. STORAGE_ACCOUNT_URL tells the report job where to write the PDF. SUBSCRIPTION_ID and REPORT_RG tell the SDK where to create the ACI. Passwords are masked.
 
 ---
 
@@ -202,27 +202,27 @@ Description: TODO: Explain what each group of settings is used for. Mask secrets
 
 ### Evidence 7.1: Web App Wiring
 
-TODO: Embed screenshot showing `FUNCTION_START_URL` and `FUNCTION_STATUS_URL` configured on the Web App.
+![Web App Wiring](docs/7.1.png)
 
-Description: TODO: Explain how the frontend starts and polls the Durable orchestration.
+Description: FUNCTION_START_URL is set to the http_starter endpoint of the Function App with the function key. FUNCTION_STATUS_URL is set to the Durable Task webhook endpoint used by the frontend to poll orchestration status.
 
 ### Evidence 7.2: Happy Path UI
 
-TODO: Embed screenshots of the form before submit, Running status, and Completed status with report URL.
+![Happy Path](docs/7.2.png)
 
-Description: TODO: Explain the valid order payload and final result.
+Description: A valid order was submitted with SKU ABC and qty 2. The status panel first showed Running with a live instance ID then updated to Completed with the report URL proving the full pipeline executed successfully.
 
 ### Evidence 7.3: Backend Participation
 
-TODO: Embed screenshots showing Function App invocation, AKS validator evidence, ACI evidence, and Blob PDF evidence.
+![Backend Participation](docs/7.3.png)
 
-Description: TODO: Trace the same order ID across services.
+Description: The Function App log stream shows http_starter, my_orchestrator, validate_activity, and report_activity all executing in sequence for the same order. The AKS validator received the request and the PDF appeared in blob storage matching the submitted order ID.
 
 ### Evidence 7.4: Reject Path UI
 
-TODO: Embed screenshot of an order with `qty > 100` being rejected.
+![Reject Path](docs/7.4.png)
 
-Description: TODO: Explain why no report ACI should be created for this order.
+Description: An order was submitted with qty 999 which exceeds the validator limit of 100. The orchestrator received the rejected response from the AKS validator and returned status rejected without creating any ACI, confirmed by the empty az container list output.
 
 ---
 

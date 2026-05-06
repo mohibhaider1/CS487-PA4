@@ -245,9 +245,9 @@ Description: An order was submitted with qty 999 which exceeds the validator lim
 
 ### Evidence 8.1: Architecture Diagram
 
-TODO: Embed your architecture diagram from `docs/`.
+![Architecture Diagram](docs/8.1.png)
 
-Description: TODO: Confirm that it shows GitHub, App Service, Durable Function, AKS, ACI, Blob Storage, ACR, and IAM.
+Description: TODO: The diagram shows all components. GitHub feeding into App Service via CI/CD, the Web App calling the Durable Function, the Function calling the AKS validator and spawning ACI instances, the ACI writing PDFs to Blob Storage, and ACR supplying images to all three compute services.
 
 ### Question 8.2: Service Selection
 
